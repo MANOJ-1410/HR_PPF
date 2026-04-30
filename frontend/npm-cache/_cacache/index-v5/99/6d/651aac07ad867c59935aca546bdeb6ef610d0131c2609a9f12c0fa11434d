@@ -1,0 +1,8 @@
+
+b0a2cf9c9f256e65943c63fe4b0ed1a77c7d03ea	{"key":"security-advisory:@vitejs/plugin-react:LAEVzKbyrwzOS5VpJw16c/6DdvZsSZrhm+q5n1ebqkDNBpwgWnTyihEkNWkOasYIKlRId2s4mANWFZ3uSogrew==","integrity":"sha512-38plP+ofa17WM2aKJtmEjzKt648WtuvlNncU+khBI0qyVbum2nKG9fvKIEYBbs9GGx87B4HYalV5KqdHUIdqzg==","time":1747803952155,"size":1150}
+<<<<<<< HEAD
+68d86e7ceb70705b62d3a71ce948ed9cc93c5582	{"key":"security-advisory:@vitejs/plugin-react:LAEVzKbyrwzOS5VpJw16c/6DdvZsSZrhm+q5n1ebqkDNBpwgWnTyihEkNWkOasYIKlRId2s4mANWFZ3uSogrew==","integrity":"sha512-JdqJs4XbpyNhOdleV3X8Vuz0FpPfj9JWloReE3HumoBoe8Us31GOFg8Q1rQbj0DmQrieB+z9uhntJ2qW9/lSGA==","time":1763623623697,"size":1261}
+cc70b050cddb1118ffe1895c8ee40ad0745d65bf	{"key":"security-advisory:@vitejs/plugin-react:LAEVzKbyrwzOS5VpJw16c/6DdvZsSZrhm+q5n1ebqkDNBpwgWnTyihEkNWkOasYIKlRId2s4mANWFZ3uSogrew==","integrity":"sha512-lXpRP2Ko5pjyyhFfsMXW5TrE4kU5AgLPneyIoQUbnfWcZUQ5yymMeQgVYCrsQljtXM9EE6R5LrwyE/zRkEL5qw==","time":1777521863904,"size":1324}
+=======
+68d86e7ceb70705b62d3a71ce948ed9cc93c5582	{"key":"security-advisory:@vitejs/plugin-react:LAEVzKbyrwzOS5VpJw16c/6DdvZsSZrhm+q5n1ebqkDNBpwgWnTyihEkNWkOasYIKlRId2s4mANWFZ3uSogrew==","integrity":"sha512-JdqJs4XbpyNhOdleV3X8Vuz0FpPfj9JWloReE3HumoBoe8Us31GOFg8Q1rQbj0DmQrieB+z9uhntJ2qW9/lSGA==","time":1763623623697,"size":1261}
+>>>>>>> a9dc5b621dda5d24f1975cfc1b13ab37f15dbbfa

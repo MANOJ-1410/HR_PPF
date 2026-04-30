@@ -1,0 +1,8 @@
+
+0d78a15fb6227a0420dee8d097850c7c92f916f0	{"key":"security-advisory:jspdf:2rS2mD2ZyHqAUyV/LJJ83LgS+Z/FgBk/NjT9QlxqGTSAwY5Oe+zcxhMfvuRPv9R534q6QTWd18QG/FUsE4U5aQ==","integrity":"sha512-/C7MVnPa3IRyxUw6eCSRMy5Ypp3vhaFAFsDPSj2evzzVjvFRDo+AkFX3yv62cXXf8cKCZKnezmckS82pMQ1/PQ==","time":1747803951066,"size":684}
+<<<<<<< HEAD
+8e9887452cd0402ed337c802d8eae0f586bd819a	{"key":"security-advisory:jspdf:2rS2mD2ZyHqAUyV/LJJ83LgS+Z/FgBk/NjT9QlxqGTSAwY5Oe+zcxhMfvuRPv9R534q6QTWd18QG/FUsE4U5aQ==","integrity":"sha512-K1bohPDXqBScTjzACcTFinMXa1aaZh9/9WACzXOv7yundm53bhRcQIRiFFMtUh9Oi5qU7495ez6UKWvXS1mHjw==","time":1763623622281,"size":708}
+1f84952607f979377b1670986fa14ebccbbc866a	{"key":"security-advisory:jspdf:2rS2mD2ZyHqAUyV/LJJ83LgS+Z/FgBk/NjT9QlxqGTSAwY5Oe+zcxhMfvuRPv9R534q6QTWd18QG/FUsE4U5aQ==","integrity":"sha512-MmzU7onCFJGXOA/zdZ3B+swOdUNBdNNvarfg6ltD1Mm8DjMvOYhpK5Ss8H4wQvsMjvH8dMhuQxRhK5dftzek0w==","time":1777521851813,"size":740}
+=======
+8e9887452cd0402ed337c802d8eae0f586bd819a	{"key":"security-advisory:jspdf:2rS2mD2ZyHqAUyV/LJJ83LgS+Z/FgBk/NjT9QlxqGTSAwY5Oe+zcxhMfvuRPv9R534q6QTWd18QG/FUsE4U5aQ==","integrity":"sha512-K1bohPDXqBScTjzACcTFinMXa1aaZh9/9WACzXOv7yundm53bhRcQIRiFFMtUh9Oi5qU7495ez6UKWvXS1mHjw==","time":1763623622281,"size":708}
+>>>>>>> a9dc5b621dda5d24f1975cfc1b13ab37f15dbbfa

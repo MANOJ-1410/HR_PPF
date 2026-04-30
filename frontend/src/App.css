@@ -1,0 +1,18 @@
+/* Container CSS */
+
+.ant-steps-item-process .ant-steps-item-icon > .ant-steps-icon {
+  color: white !important;
+}
+
+.ant-steps-item-icon .ant-steps-icon {
+  line-height: unset !important;
+  position: unset !important;
+  top: unset !important;
+}
+
+.ant-steps-item-icon {
+  border: 1px solid #39366d !important; /* Add a border with your primary color */
+  border-radius: 50%; /* Ensure the border is circular */
+}
+
+
