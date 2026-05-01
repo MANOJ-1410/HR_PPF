@@ -43,8 +43,20 @@ const validators = {
   mode: (v) => STUDY_MODES.includes(v) ? '' : 'Please select a mode of study.',
 };
 
-const validate = (field, value) =>
-  validators[field] ? validators[field](value) : '';
+const validate = (field, value, qualification) => {
+  const trimmedValue = (value || '').toString().trim();
+  
+  // If the current field is being cleared, check if the rest of the row is also empty
+  if (trimmedValue === '') {
+    const hasOtherContent = Object.entries(qualification).some(([k, v]) => 
+      k !== 'level' && k !== 'id' && k !== field && v && v.toString().trim() !== ''
+    );
+    // If no other field is filled, this row doesn't "need" validation yet
+    if (!hasOtherContent) return '';
+  }
+
+  return validators[field] ? validators[field](value) : '';
+};
 
 // ─── Animation variants (outside component → created once) ───────────────────
 
@@ -280,25 +292,42 @@ const Academics = () => {
   const handleChange = useCallback(
     (index, field, value) => {
       dispatch(updateAcademic({ index, field, value }));
-      const error = validate(field, value);
+      
+      // Get the current state of this qualification row
+      const currentQual = academics.qualifications[index];
+      const updatedQual = { ...currentQual, [field]: value };
+      
+      const error = validate(field, value, updatedQual);
+      
       if (error) {
         dispatch(setError({ field: `academics.${index}.${field}`, error }));
       } else {
         dispatch(clearError({ field: `academics.${index}.${field}` }));
       }
+
+      // Special case: if the whole row is now empty, clear ALL errors for this row
+      const isRowEmpty = Object.entries(updatedQual).every(([k, v]) => 
+        k === 'level' || k === 'id' || !v || v.toString().trim() === ''
+      );
+      if (isRowEmpty) {
+        ['university', 'college', 'specialization', 'yearOfPassing', 'percentage', 'mode'].forEach(f => {
+          dispatch(clearError({ field: `academics.${index}.${f}` }));
+        });
+      }
     },
-    [dispatch],
+    [dispatch, academics.qualifications],
   );
 
   // Only show error after the user leaves the field (better UX)
   const handleBlur = useCallback(
     (index, field, value) => {
-      const error = validate(field, value);
+      const qual = academics.qualifications[index];
+      const error = validate(field, value, qual);
       if (error) {
         dispatch(setError({ field: `academics.${index}.${field}`, error }));
       }
     },
-    [dispatch],
+    [dispatch, academics.qualifications],
   );
 
   return (
