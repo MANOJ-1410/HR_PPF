@@ -43,21 +43,23 @@ const CandidateView = () => {
 
     const element = document.getElementById("pdf-content");
     const options = {
-      margin: [0, 0, 0, 0],
+      margin: [2, 0, 5, 0], // Reduced top margin to make content come 'little up'
       filename: `${candidateDetail?.personalDetail?.name || "Candidate"}_Profile.pdf`,
       image: { type: "jpeg", quality: 1.0 },
       html2canvas: { 
-        scale: 2, 
+        scale: 3, // Increased scale for pixel-perfection
         useCORS: true, 
         letterRendering: true,
-        scrollX: 0,
-        scrollY: 0
+        allowTaint: true,
+        logging: false,
       },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all", "css"], after: ".page-break" }
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
+      pagebreak: { mode: ["avoid-all", "css"] }
     };
 
     try {
+      // Give the browser a moment to ensure all styles/images are fully painted
+      await new Promise(resolve => setTimeout(resolve, 500));
       await html2pdf().set(options).from(element).save();
     } catch (err) {
       console.error("PDF Export Error:", err);
@@ -137,54 +139,95 @@ const CandidateView = () => {
         </div>
       </div>
 
-      {/* Main Content (A4 Pages) */}
-      <div id="pdf-content" className="w-[210mm] mx-auto bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] print:shadow-none print:w-full border border-slate-100">
-        
-        {/* PAGE 1 */}
-        <div className="page-container p-[10mm] min-h-[297mm] flex flex-col relative overflow-hidden">
+      {/* Main Content (Natural Flow) */}
+      <div id="pdf-content" className="w-[210mm] mx-auto bg-white shadow-2xl print:shadow-none print:w-full">
+        <div className="print-wrapper">
           <style dangerouslySetInnerHTML={{ __html: `
-            .excel-table { width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; table-layout: fixed; margin-bottom: 8px; break-inside: avoid; }
-            .excel-table td, .excel-table th { border: 1px solid #000; padding: 3px 5px; font-size: 8.5pt; vertical-align: middle; height: 22px; overflow: hidden; word-wrap: break-word; }
-            .bg-navy { background-color: #000; color: #fff; font-weight: bold; text-align: center; text-transform: uppercase; height: 26px; }
-            .bg-blue-header { background-color: #DEEBF7; font-weight: bold; }
-            .text-center { text-align: center; }
-            .font-bold { font-weight: bold; }
-            .header-box { border: 1px solid #000; padding: 4px; text-align: center; }
-            .footer-page { position: absolute; bottom: 8mm; left: 0; right: 0; text-align: center; font-size: 8.5pt; color: #000; }
-            .page-container { 
-              height: 297mm; 
-              width: 210mm; 
-              padding: 10mm; 
-              box-sizing: border-box; 
+            .excel-table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              font-family: 'Arial', sans-serif; 
+              table-layout: fixed; 
+              margin-bottom: 2px; 
+              page-break-inside: avoid; 
+              break-inside: avoid; 
+              box-sizing: border-box;
+            }
+            .excel-table td, .excel-table th { 
+              border: 1px solid #000; 
+              padding: 5px 8px; 
+              font-size: 7.5pt; 
+              vertical-align: middle; 
+              min-height: 24px; 
+              word-wrap: break-word; 
               position: relative; 
+              line-height: 1.2;
+              box-sizing: border-box;
+            }
+            .excel-table th {
+              text-align: center;
+              font-weight: bold;
+            }
+            .bg-navy { 
+              background-color: #000; 
+              color: #fff; 
+              font-weight: bold; 
+              text-align: center; 
+              text-transform: uppercase; 
+              padding: 4px 8px;
+              font-size: 8.5pt; 
+              line-height: 1.1;
+            }
+            .bg-blue-header { background-color: #DEEBF7; font-weight: bold; padding-left: 8px !important; }
+            .text-center { text-align: center !important; }
+            .font-bold { font-weight: bold; }
+            .header-box { border: 1px solid #000; padding: 3px 6px; text-align: center; }
+            .print-wrapper { 
+              width: 210mm; 
+              margin: 0 auto;
+              padding: 8mm 10mm 10mm 10mm; 
+              box-sizing: border-box; 
               background: white;
+              min-height: 297mm;
+            }
+            .photo-container {
+              width: 100%;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
               overflow: hidden;
+              background-color: #f9fafb;
+            }
+            .photo-container img {
+              max-width: 100%;
+              max-height: 100%;
+              object-fit: contain;
             }
             @media print {
-              .page-container { height: 297mm; width: 210mm; margin: 0; border: none; padding: 10mm; }
-              body { margin: 0; padding: 0; }
-              .page-break { display: block; page-break-after: always; height: 0; }
+              .print-wrapper { width: 190mm; padding: 0; margin: 0; }
+              body { background: white; }
               .print-hidden { display: none !important; }
+              @page { margin: 10mm; }
             }
           `}} />
 
           {/* Header */}
-          <table className="excel-table mb-4">
+          <table className="excel-table mb-2">
             <tbody>
               <tr>
-                <td colSpan="2" style={{ border: 'none', verticalAlign: 'top', paddingTop: '10px' }}>
-                  <img src={logo} alt="Logo" style={{ height: '45px', objectFit: 'contain' }} />
+                <td colSpan="2" style={{ border: 'none', verticalAlign: 'middle', padding: '5px' }}>
+                  <img src={logo} alt="Logo" style={{ height: '40px', objectFit: 'contain' }} />
                 </td>
                 <td colSpan="7" style={{ border: 'none', textAlign: 'center' }}>
-                  <div style={{ fontSize: '16pt', fontWeight: 'bold', marginBottom: '2px' }}>Manjushree Ventures</div>
-                  <div style={{ fontSize: '13pt', fontWeight: 'bold', marginBottom: '2px' }}>Personal Profile Form</div>
-                  <div style={{ fontSize: '10pt', fontWeight: '600' }}>Human Resources Department</div>
+                  <div style={{ fontSize: '15pt', fontWeight: 'bold', lineHeight: '1.2' }}>Manjushree Ventures</div>
+                  <div style={{ fontSize: '12pt', fontWeight: 'bold', lineHeight: '1.2' }}>Personal Profile Form</div>
+                  <div style={{ fontSize: '9pt', fontWeight: '600' }}>Human Resources Department</div>
                 </td>
-                <td colSpan="2" className="header-box" style={{ fontSize: '8pt', textAlign: 'left', border: '1px solid #000' }}>
+                <td colSpan="2" className="header-box" style={{ fontSize: '7.5pt', textAlign: 'left', border: '1px solid #000' }}>
                   <div className="font-bold">HR-TA-</div>
                   <div className="font-bold">Process 4-</div>
-                  <div className="font-bold">Version:09 /</div>
-                  <div className="font-bold">Rev:00</div>
+                  <div className="font-bold">Version:09 / Rev:00</div>
                   <div className="font-bold">{formatDate(new Date())}</div>
                 </td>
               </tr>
@@ -192,11 +235,11 @@ const CandidateView = () => {
           </table>
 
           {/* Note */}
-          <table className="excel-table mb-2">
+          <table className="excel-table mb-1">
             <tbody>
               <tr>
-                <td className="bg-navy" style={{ width: '15%' }}>Note</td>
-                <td style={{ fontSize: '8pt' }}>
+                <td className="bg-navy" style={{ width: '12%' }}>Note</td>
+                <td style={{ fontSize: '7.5pt', padding: '4px 10px' }}>
                   1. All the information asked should be typed without fail. Don't leave any cell blank.<br/>
                   2. After filling all cells, send to us in printable format
                 </td>
@@ -227,14 +270,20 @@ const CandidateView = () => {
                 <td colSpan="1">{personal.age || ""}</td>
                 <td colSpan="2" className="bg-blue-header" style={{ borderLeft: '1px solid #000' }}>e mail ID</td>
                 <td colSpan="2" style={{ textAlign: 'left', fontSize: '8pt', wordBreak: 'break-word' }}>{personal.email || ""}</td>
-                <td colSpan="2" rowSpan="4" className="text-center" style={{ position: 'relative', border: '1px solid #000', padding: '2px' }}>
-                  {personal.photo ? (
-                    <img src={personal.photo.startsWith('http') ? personal.photo : `${backendUrl}${personal.photo}`} alt="Candidate" style={{ maxWidth: '100%', maxHeight: '115px', objectFit: 'contain' }} />
-                  ) : (
-                    <div style={{ fontSize: '7pt', color: '#888', padding: '10px' }}>
-                      Insert Recent Photograph<br/>(Use JPEG)
-                    </div>
-                  )}
+                <td colSpan="2" rowSpan="4" className="text-center" style={{ border: '1px solid #000', padding: '1px' }}>
+                  <div className="photo-container" style={{ height: '115px' }}>
+                    {personal.photo ? (
+                      <img 
+                        src={personal.photo.startsWith('http') ? personal.photo : `${backendUrl}${personal.photo}`} 
+                        alt="Candidate" 
+                        crossOrigin="anonymous"
+                      />
+                    ) : (
+                      <div style={{ fontSize: '7pt', color: '#888', padding: '5px' }}>
+                        Insert Recent Photograph<br/>(Use JPEG)
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
               <tr>
@@ -256,16 +305,27 @@ const CandidateView = () => {
             </tbody>
           </table>
 
-          {/* Languages & Employment Terms */}
-          <table className="excel-table mt-4">
+          {/* Languages & Employment Terms - Refactored for 9 Columns */}
+          <table className="excel-table mt-4" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '7%' }} />
+              <col style={{ width: '8%' }} />
+              <col style={{ width: '8%' }} />
+              <col style={{ width: '22%' }} />
+              <col style={{ width: '5%' }} />
+              <col style={{ width: '12.5%' }} />
+              <col style={{ width: '12.5%' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th colSpan="2" className="bg-blue-header">Language Known</th>
                 <th className="bg-blue-header">Read</th>
                 <th className="bg-blue-header">Speak</th>
                 <th className="bg-blue-header">Write</th>
-                <th colSpan="3" className="bg-blue-header">Employment Terms</th>
-                <th colSpan="3" className="bg-blue-header">Vehicle Ownership (Tick)</th>
+                <th colSpan="2" className="bg-blue-header">Employment Terms</th>
+                <th colSpan="2" className="bg-blue-header">Vehicle Ownership (Tick)</th>
               </tr>
             </thead>
             <tbody>
@@ -275,10 +335,10 @@ const CandidateView = () => {
                 <td className="text-center">{personal.languages?.[0]?.read ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[0]?.speak ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[0]?.write ? "Yes" : ""}</td>
-                <td colSpan="2" className="bg-blue-header">Notice Period in days</td>
+                <td className="bg-blue-header">Notice Period in days</td>
                 <td className="text-center">{personal.noticePeriod || ""}</td>
-                <td className="bg-blue-header" colSpan="1.5">2 Wheeler</td>
-                <td className="bg-blue-header" colSpan="1.5">4 Wheeler</td>
+                <td className="bg-blue-header text-center">2 Wheeler</td>
+                <td className="bg-blue-header text-center">4 Wheeler</td>
               </tr>
               <tr>
                 <td rowSpan="4" className="bg-blue-header">Other Languages</td>
@@ -286,7 +346,7 @@ const CandidateView = () => {
                 <td className="text-center">{personal.languages?.[1]?.read ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[1]?.speak ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[1]?.write ? "Yes" : ""}</td>
-                <td colSpan="2" className="bg-blue-header">Can you join in 30 days</td>
+                <td className="bg-blue-header">Can you join in 30 days</td>
                 <td className="text-center">{personal.canJoinIn30Days ? "Yes" : "No"}</td>
                 <td className="text-center">{personal.vehicleOwnership?.twoWheeler ? "✓" : ""}</td>
                 <td className="text-center">{personal.vehicleOwnership?.fourWheeler ? "✓" : ""}</td>
@@ -296,29 +356,29 @@ const CandidateView = () => {
                 <td className="text-center">{personal.languages?.[2]?.read ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[2]?.speak ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[2]?.write ? "Yes" : ""}</td>
-                <td colSpan="2" className="bg-blue-header">Current CTC PA in ₹</td>
+                <td className="bg-blue-header">Current CTC PA in ₹</td>
                 <td className="text-center">{personal.currentCTC || ""}</td>
-                <td colSpan="2" className="bg-blue-header" style={{ textAlign: 'center' }}>Previous Increment</td>
+                <td colSpan="2" className="bg-blue-header text-center">Previous Increment</td>
               </tr>
               <tr>
                 <td>{personal.languages?.[3]?.language || ""}</td>
                 <td className="text-center">{personal.languages?.[3]?.read ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[3]?.speak ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[3]?.write ? "Yes" : ""}</td>
-                <td colSpan="2" className="bg-blue-header">Variable Pay PA in ₹</td>
+                <td className="bg-blue-header">Variable Pay PA in ₹</td>
                 <td className="text-center">{personal.variablePay || ""}</td>
-                <td className="bg-blue-header" style={{ textAlign: 'center' }}>%</td>
-                <td colSpan="2" style={{ textAlign: 'center' }}>{personal.previousIncrementPercent || ""}%</td>
+                <td className="bg-blue-header text-center">%</td>
+                <td className="text-center">{personal.previousIncrementPercent || ""}%</td>
               </tr>
               <tr>
                 <td>{personal.languages?.[4]?.language || ""}</td>
                 <td className="text-center">{personal.languages?.[4]?.read ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[4]?.speak ? "Yes" : ""}</td>
                 <td className="text-center">{personal.languages?.[4]?.write ? "Yes" : ""}</td>
-                <td colSpan="2" className="bg-blue-header">Total CTC PA in ₹</td>
+                <td className="bg-blue-header">Total CTC PA in ₹</td>
                 <td className="text-center">{personal.totalCTC || ""}</td>
-                <td className="bg-blue-header" style={{ textAlign: 'center' }}>Amount in ₹</td>
-                <td colSpan="2" style={{ textAlign: 'center' }}>{personal.previousIncrementAmount || ""}</td>
+                <td className="bg-blue-header text-center">Amount in ₹</td>
+                <td className="text-center">{personal.previousIncrementAmount || ""}</td>
               </tr>
             </tbody>
           </table>
@@ -355,6 +415,7 @@ const CandidateView = () => {
             </tbody>
           </table>
 
+          
           {/* Career Progression Header */}
           <table className="excel-table mt-4">
             <thead>
@@ -374,34 +435,29 @@ const CandidateView = () => {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 6 }).map((_, i) => {
-                const exp = career[i] || {};
-                return (
-                  <tr key={i} style={{ height: '35px' }}>
-                    <td>{exp.companyName || ""}</td>
-                    <td>{exp.businessType || ""}</td>
-                    <td>{exp.location || ""}</td>
-                    <td>{exp.companyRevenue || ""}</td>
-                    <td>{exp.designation || ""}</td>
-                    <td>{exp.reportingTo || ""}</td>
-                    <td>{exp.periodFrom || ""}</td>
-                    <td>{exp.periodTo || ""}</td>
-                    <td>{exp.totalService || ""}</td>
-                    <td>{exp.ctcWhileLeaving || ""}</td>
-                    <td>{exp.reasonForLeaving || ""}</td>
-                  </tr>
-                );
-              })}
+              {(() => {
+                const displayCount = Math.max(career.length || 0, 3);
+                return Array.from({ length: displayCount }).map((_, i) => {
+                  const exp = career[i] || {};
+                  return (
+                    <tr key={i} style={{ height: '35px' }}>
+                      <td>{exp.companyName || ""}</td>
+                      <td>{exp.businessType || ""}</td>
+                      <td>{exp.location || ""}</td>
+                      <td>{exp.companyRevenue || ""}</td>
+                      <td>{exp.designation || ""}</td>
+                      <td>{exp.reportingTo || ""}</td>
+                      <td className="text-center">{exp.periodFrom || ""}</td>
+                      <td className="text-center">{exp.periodTo || ""}</td>
+                      <td className="text-center">{exp.totalService || ""}</td>
+                      <td>{exp.ctcWhileLeaving || ""}</td>
+                      <td style={{ fontSize: '7pt' }}>{exp.reasonForLeaving || ""}</td>
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
-
-          <div className="footer-page">Page 1 of 2</div>
-        </div>
-
-        <div className="page-break" />
-
-        {/* PAGE 2 */}
-        <div className="page-container p-[10mm] min-h-[297mm] flex flex-col relative overflow-hidden">
           
           {/* Family Details */}
           <table className="excel-table mt-4">
@@ -529,19 +585,24 @@ const CandidateView = () => {
               <tr>
                 <td className="bg-blue-header text-center" style={{ width: '50%' }}>Signature<br/><span style={{ fontSize: '7pt', fontWeight: 'normal' }}>Insert JPEG image in the space provided</span></td>
                 <td className="text-center">
-                  {declaration.signature ? (
-                    <img src={declaration.signature.startsWith('http') ? declaration.signature : `${backendUrl}${declaration.signature}`} alt="Signature" style={{ maxHeight: '50px' }} />
-                  ) : (
-                    <span style={{ color: '#ccc', fontSize: '8pt' }}>Insert here</span>
-                  )}
+                  <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {declaration.signature ? (
+                      <img 
+                        src={declaration.signature.startsWith('http') ? declaration.signature : `${backendUrl}${declaration.signature}`} 
+                        alt="Signature" 
+                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
+                        crossOrigin="anonymous"
+                      />
+                    ) : (
+                      <span style={{ color: '#ccc', fontSize: '8pt' }}>Insert here</span>
+                    )}
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
 
-          <div className="footer-page">Page 2 of 2</div>
         </div>
-
       </div>
     </div>
   );

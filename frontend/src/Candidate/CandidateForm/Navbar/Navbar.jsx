@@ -17,6 +17,8 @@ import { resetCandidateForm } from "../../../redux/slices/candidatesSlice";
 import "react-toastify/dist/ReactToastify.css";
 import logo from "../../../assets/MV Logo.png";
 
+import { LogoutAdmin } from "../../../apiHandler/authenticate";
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -32,14 +34,14 @@ const Navbar = () => {
 
   // --- Authentication Check ---
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
     const role = localStorage.getItem('userRole');
-    const email = localStorage.getItem('userEmail');
 
-    if (token && role && email) {
+    if (userStr && role) {
+      const user = JSON.parse(userStr);
       setIsLoggedIn(true);
       setUserRole(role);
-      setUserEmail(email);
+      setUserEmail(user.email);
       setIsSuperAdmin(role === 'superadmin');
     } else {
       setIsLoggedIn(false);
@@ -79,10 +81,7 @@ const Navbar = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch(`${backendUrl}/api/auth/logout`, { 
-        method: "POST",
-        credentials: "include" 
-      });
+      await LogoutAdmin();
     } catch (err) {
       console.error("Logout error:", err);
     }
@@ -101,7 +100,10 @@ const Navbar = () => {
       hideProgressBar: true
     });
   
-    setTimeout(() => navigate("/superadmin"), 1000);
+    setTimeout(() => {
+      navigate("/superadmin");
+      window.location.reload(); // Ensure all states are reset
+    }, 1000);
   }, [navigate]);
 
   const getInitials = (email) => {

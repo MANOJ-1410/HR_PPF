@@ -118,7 +118,30 @@ router.put('/update-password', async (req, res) => {
   }
 });
 
-// 4. LOGOUT
+// 4. VERIFY SESSION (Check if user is logged in on page refresh)
+router.get('/me', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "YOUR_SECRET_KEY");
+    const user = await User.findById(decoded.id).select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(401).json({ message: "Invalid or expired token" });
+  }
+});
+
+// 5. LOGOUT
 router.post('/logout', (req, res) => {
   res.clearCookie("token");
   res.status(200).json({ message: "Logged out successfully" });

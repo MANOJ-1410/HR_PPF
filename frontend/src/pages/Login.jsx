@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import logo from '../assets/MV Logo.png';
 import bgImage from '../assets/login-bg.png';
-import { backendUrl } from '../backendUrl';
+import { LoginAdmin } from '../apiHandler/authenticate';
 
-const Login = () => {
+const Login = ({ onLogin }) => {
   // State Management
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -15,9 +15,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
-
-  // backend URL
-  const BASE_URL = `${backendUrl}/api`;
 
   // Handle Input Changes
   const handleChange = (e) => {
@@ -47,27 +44,20 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        // Important: this allows the browser to receive and store the httpOnly cookie
-        credentials: 'include' 
-      });
+      const data = await LoginAdmin(formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (data.hasError) {
         throw new Error(data.message || 'Login failed');
       }
 
-      const { user } = data;
+      const { user, token } = data;
 
-      // We still store user info for UI (name, role, email) 
-      // but the actual auth token is now in a secure httpOnly cookie
+      // Persist UI-related user info
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('userRole', user.role || 'hr');
-      localStorage.setItem('userEmail', user.email);
+      
+      // Update app state
+      if (onLogin) onLogin(user.role);
 
       toast.success(`Access Granted. Welcome, ${user.name || 'Admin'}`);
 

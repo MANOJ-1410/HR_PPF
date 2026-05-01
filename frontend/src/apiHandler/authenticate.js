@@ -1,29 +1,32 @@
 import { backendUrl } from "../backendUrl";
 import client from "../utils/client";
 
-const commonEndpoint = `${backendUrl}/api/v1/auth`;
+const commonEndpoint = `${backendUrl}/api/auth`;
 
 export const LoginAdmin = async (formData) => {
     try {
         const response = await client.post(`${commonEndpoint}/login`, formData);
-        return response;
+        return response.data; // Return the data directly
     } catch (error) {
-        console.error("Error:", error.message);
+        console.error("Login Error:", error.message);
+        return { hasError: true, message: error.response?.data?.message || "Login failed" };
+    }
+}
 
-        // Handle error responses
-        if (error.response) {
-            console.error("Response Data:", error.response.data);
-            console.error("Response Status:", error.response.status);
-            console.error("Response Headers:", error.response.headers);
+export const GetMe = async () => {
+    try {
+        const response = await client.get(`${commonEndpoint}/me`);
+        return response.data;
+    } catch (error) {
+        return { hasError: true, message: "Not authenticated" };
+    }
+}
 
-            // Handle specific 403 error or other status codes
-            if (error.response.status === 403) {
-                console.log("Login failed: Email or password is incorrect.");
-            }
-        } else if (error.request) {
-            console.error("No Response Received:", error.request);
-        } else {
-            console.error("Error Config:", error.config);
-        }
+export const LogoutAdmin = async () => {
+    try {
+        const response = await client.post(`${commonEndpoint}/logout`);
+        return response.data;
+    } catch (error) {
+        return { hasError: true };
     }
 }

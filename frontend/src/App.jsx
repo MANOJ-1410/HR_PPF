@@ -13,24 +13,40 @@ const EditProfile = lazy(() => import("./Candidate/CandidateForm/NabarPages/Edit
 const SuccessPage = lazy(() => import("./pages/SuccessPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 
+import { GetMe } from './apiHandler/authenticate';
+
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState('');
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
 
-  // Navbar is hidden on the login page as requested, but remains on others for consistency
+  // Navbar is hidden on the login page as requested
   const hideNavbar = location.pathname === '/superadmin'; 
 
-
   useEffect(() => {
-    // Check authentication status on app load
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('userRole');
-    
-    if (token && role) {
-      setIsLoggedIn(true);
-      setUserRole(role);
-    }
+    const checkAuth = async () => {
+      try {
+        const data = await GetMe();
+        if (data && !data.hasError) {
+          setIsLoggedIn(true);
+          setUserRole(data.user.role);
+          // Sync with localStorage for UI convenience
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('userRole', data.user.role);
+        } else {
+          // If session is invalid, clear stale data
+          setIsLoggedIn(false);
+          localStorage.removeItem('user');
+          localStorage.removeItem('userRole');
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
   }, []);
 
   const handleLogin = (role) => {
@@ -40,8 +56,14 @@ const App = () => {
 
   // Protected Route Component
   const PrivateRoute = ({ children }) => {
-    const token = localStorage.getItem('token');
-    return token ? children : <Navigate to="/superadmin" replace />;
+    if (loading) return <Loader />;
+    return isLoggedIn ? children : <Navigate to="/superadmin" replace />;
+  };
+
+  // Auth Redirect (prevent logged-in users from seeing login page)
+  const AuthRedirect = ({ children }) => {
+    if (loading) return <Loader />;
+    return isLoggedIn ? <Navigate to="/all-candidate-list" replace /> : children;
   };
 
   return (
@@ -49,16 +71,42 @@ const App = () => {
       {!hideNavbar && <Navbar />}
 
       <Routes>
-        {/* Your existing routes - kept exactly the same */}
         <Route path='/' element={<HomePage/>} />
-        <Route path="/" element={<Navigate to="/new-candidate" replace />} />
         <Route path="/new-candidate" element={<NewCandidateForm />} />
-        <Route path="/superadmin" element={<Login onLogin={handleLogin} />} />
-        <Route path="/all-candidate-list" element={<AllCandidateList />} />
-        <Route path="/candidate-view/:candidateId" element={<CandidateView />} />
-        <Route path="/add-admins" element={<AddAdmin />} />
-        <Route path="/edit-profile" element={<EditProfile />} />
+        
+        {/* Auth Route - Redirects away if already logged in */}
+        <Route path="/superadmin" element={
+          <AuthRedirect>
+            <Login onLogin={handleLogin} />
+          </AuthRedirect>
+        } />
+
+        {/* Protected Admin Routes */}
+        <Route path="/all-candidate-list" element={
+          <PrivateRoute>
+            <AllCandidateList />
+          </PrivateRoute>
+        } />
+        <Route path="/candidate-view/:candidateId" element={
+          <PrivateRoute>
+            <CandidateView />
+          </PrivateRoute>
+        } />
+        <Route path="/add-admins" element={
+          <PrivateRoute>
+            <AddAdmin />
+          </PrivateRoute>
+        } />
+        <Route path="/edit-profile" element={
+          <PrivateRoute>
+            <EditProfile />
+          </PrivateRoute>
+        } />
+        
         <Route path="/application-success" element={<SuccessPage />} />
+        
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/new-candidate" replace />} />
       </Routes>
     </Suspense>
   );

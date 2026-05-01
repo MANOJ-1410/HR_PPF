@@ -12,7 +12,8 @@ const EditProfile = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const userEmail = localStorage.getItem("userEmail") || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")).email : null);
+  const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
+  const userEmail = user?.email;
 
   useEffect(() => {
     if (!userEmail) {
