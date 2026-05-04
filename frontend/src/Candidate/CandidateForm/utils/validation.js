@@ -15,9 +15,14 @@ export const validateName = (name) => {
   return name && name.trim().length >= 2;
 };
 
-export const validateAge = (age) => {
+export const validateAge = (age, minAge = 18) => {
   const numAge = parseInt(age);
-  return numAge >= 18 && numAge <= 100;
+  return !isNaN(numAge) && numAge >= minAge && numAge <= 100;
+};
+
+export const validateChildAge = (age) => {
+  const numAge = parseInt(age);
+  return !isNaN(numAge) && numAge >= 0 && numAge <= 100;
 };
 
 export const validateDate = (date) => {

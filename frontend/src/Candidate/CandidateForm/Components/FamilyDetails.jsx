@@ -20,7 +20,7 @@ import {
   removeChild,
   setError
 } from '../../../redux/slices/candidatesSlice';
-import { validateName, validateAge, validateRequired } from '../utils/validation';
+import { validateName, validateAge, validateChildAge, validateRequired } from '../utils/validation';
 
 // --- Reusable Input Component (Standardized) ---
 const InputField = ({
@@ -109,7 +109,7 @@ const FamilyDetails = () => {
         if (!validateName(value)) error = 'Invalid name';
         break;
       case 'age':
-        if (!validateAge(value)) error = 'Invalid age';
+        if (!validateChildAge(value)) error = 'Invalid age';
         break;
       default:
         if (!validateRequired(value)) error = 'This field is required';

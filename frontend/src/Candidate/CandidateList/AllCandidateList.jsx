@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 // --- Backend Imports ---
-import { getAllCandidatesList, deleteSingleCandidate } from "../../apiHandler/candidate";
+import { getAllCandidatesList, deleteSingleCandidate, getCandidateDetailsByID } from "../../apiHandler/candidate";
 import { setCandidateData, resetCandidateForm } from "../../redux/slices/candidatesSlice";
 import { useDispatch } from "react-redux";
 import { backendUrl } from "../../backendUrl";
@@ -84,6 +84,7 @@ const AllCandidateList = () => {
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState({ show: false, id: null, name: "" });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFetchingFullData, setIsFetchingFullData] = useState(false);
 
   // --- Fetch Data ---
   const fetchAllCandidates = useCallback(async () => {
@@ -122,13 +123,26 @@ const AllCandidateList = () => {
   // --- Actions ---
   const handleView = (id) => navigate(`/candidate-view/${id}`);
   
-  const handleEdit = (candidate) => {
-    dispatch(setCandidateData({
-      ...candidate,
-      isEditMode: true,
-      candidateId: candidate._id
-    }));
-    navigate("/new-candidate");
+  const handleEdit = async (candidate) => {
+    const id = candidate.contactDetail?._id || candidate._id;
+    setIsFetchingFullData(true);
+    try {
+      const response = await getCandidateDetailsByID(id);
+      if (response && !response.hasError) {
+        dispatch(setCandidateData({
+          ...response.data,
+          isEditMode: true,
+          candidateId: id
+        }));
+        navigate("/new-candidate");
+      } else {
+        setError("Could not load full profile data for editing.");
+      }
+    } catch (err) {
+      setError("Error loading candidate profile.");
+    } finally {
+      setIsFetchingFullData(false);
+    }
   };
 
   const handleAddNew = () => {
@@ -221,6 +235,13 @@ const AllCandidateList = () => {
               <AlertCircle size={20} />
               <span>{error}</span>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Full Data Fetch Loader */}
+        <AnimatePresence>
+          {isFetchingFullData && (
+            <Loader fullScreen={true} text="Loading full profile for editing..." />
           )}
         </AnimatePresence>
 

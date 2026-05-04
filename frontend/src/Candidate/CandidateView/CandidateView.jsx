@@ -143,6 +143,14 @@ const CandidateView = () => {
               break-inside: avoid; 
               box-sizing: border-box;
             }
+            .allow-break {
+              page-break-inside: auto !important;
+              break-inside: auto !important;
+            }
+            .excel-table tr {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
             .excel-table td, .excel-table th { 
               border: 1px solid #000; 
               padding: 4px 8px 6px 8px; /* 6px bottom padding as requested */
@@ -156,6 +164,12 @@ const CandidateView = () => {
             .excel-table th {
               text-align: center;
               font-weight: bold;
+            }
+            .excel-table thead {
+              display: table-header-group;
+            }
+            .excel-table tbody {
+              display: table-row-group;
             }
             .bg-navy { 
               background-color: #000; 
@@ -337,8 +351,8 @@ const CandidateView = () => {
               <col style={{ width: '7%' }} />
               <col style={{ width: '8%' }} />
               <col style={{ width: '8%' }} />
-              <col style={{ width: '22%' }} />
-              <col style={{ width: '5%' }} />
+              <col style={{ width: '19%' }} />
+              <col style={{ width: '8%' }} />
               <col style={{ width: '12.5%' }} />
               <col style={{ width: '12.5%' }} />
             </colgroup>
@@ -441,7 +455,7 @@ const CandidateView = () => {
 
 
           {/* Career Progression Header */}
-          <table className="excel-table mt-1">
+          <table className="excel-table allow-break mt-1">
             <thead>
               <tr><th colSpan="11" className="bg-navy">CAREER PROGRESSION ( BEGIN WITH CURRENT/ LAST SERVED COMPANY)</th></tr>
               <tr style={{ fontSize: '7.5pt' }}>
