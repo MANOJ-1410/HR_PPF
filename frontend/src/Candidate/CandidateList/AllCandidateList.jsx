@@ -326,7 +326,46 @@ const CandidateCard = ({ data, viewMode, onView, onDelete, onEdit }) => {
   
   const name = personalDetail?.name || "Unknown Candidate";
   const role = personalDetail?.positionApplied || "Position Not Specified";
-  const exp = careerProgression?.experiences?.[0]?.totalService || "0";
+  
+  // Calculate combined total experience with support for "X yrs Y months"
+  const exp = useMemo(() => {
+    const experiences = careerProgression?.experiences || [];
+    if (experiences.length === 0) return "0";
+    
+    let totalMonths = 0;
+    
+    experiences.forEach(curr => {
+      const str = (curr.totalService || "").toLowerCase();
+      
+      // 1. Extract Years (matches "3", "3 yrs", "3.5 years", etc.)
+      const yearMatch = str.match(/(\d+\.?\d*)\s*(?:yr|year)/);
+      if (yearMatch) {
+        totalMonths += parseFloat(yearMatch[1]) * 12;
+      } else {
+        // If no "year" keyword, check if it's just a raw number (assume years)
+        const rawMatch = str.match(/^\s*(\d+\.?\d*)\s*$/);
+        if (rawMatch) totalMonths += parseFloat(rawMatch[1]) * 12;
+      }
+      
+      // 2. Extract Months (matches "8", "8 mo", "8 months", etc.)
+      const monthMatch = str.match(/(\d+\.?\d*)\s*(?:mo|month)/);
+      if (monthMatch) {
+        totalMonths += parseFloat(monthMatch[1]);
+      }
+    });
+    
+    if (totalMonths === 0) return "0";
+    
+    const years = Math.floor(totalMonths / 12);
+    const months = Math.round(totalMonths % 12);
+    
+    let result = "";
+    if (years > 0) result += `${years} yrs`;
+    if (months > 0) result += `${result ? ' ' : ''}${months} mos`;
+    
+    return result || "0";
+  }, [careerProgression]);
+
   const email = personalDetail?.email || "";
   const canJoin = personalDetail?.canJoinIn30Days;
 
@@ -351,7 +390,7 @@ const CandidateCard = ({ data, viewMode, onView, onDelete, onEdit }) => {
           <p className="text-slate-500 font-semibold text-sm mb-3">{role}</p>
           
           <div className="flex flex-wrap gap-4 text-xs font-medium text-slate-400">
-            <span className="flex items-center gap-1.5"><Briefcase size={14} className="text-slate-300" /> {exp} Yrs Experience</span>
+            <span className="flex items-center gap-1.5"><Briefcase size={14} className="text-slate-300" /> {exp}</span>
             <span className="flex items-center gap-1.5"><Mail size={14} className="text-slate-300" /> {email}</span>
           </div>
         </div>
@@ -396,7 +435,7 @@ const CandidateCard = ({ data, viewMode, onView, onDelete, onEdit }) => {
         <div className="w-full grid grid-cols-2 gap-3 mb-8">
           <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Experience</p>
-            <p className="text-mv-navy font-bold text-sm">{exp} Yrs</p>
+            <p className="text-mv-navy font-bold text-sm">{exp}</p>
           </div>
           <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Availability</p>

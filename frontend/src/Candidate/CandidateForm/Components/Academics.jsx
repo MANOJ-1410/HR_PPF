@@ -24,20 +24,20 @@ const MIN_YEAR = 1950;
 // ─── Validation helpers ───────────────────────────────────────────────────────
 
 const validators = {
-  university:    (v) => v.trim().length >= 2  ? '' : 'University / Board name is required.',
-  college:       (v) => v.trim().length >= 2  ? '' : 'Institute / College name is required.',
-  specialization:(v) => v.trim().length >= 2  ? '' : 'Specialization is required.',
+  university: (v) => v.trim().length >= 2 ? '' : 'University / Board name is required.',
+  college: (v) => v.trim().length >= 2 ? '' : 'Institute / College name is required.',
+  specialization: (v) => v.trim().length >= 2 ? '' : 'Specialization is required.',
   yearOfPassing: (v) => {
     const yr = Number(v);
-    if (!v || isNaN(yr))           return 'Year of passing is required.';
-    if (yr < MIN_YEAR)             return `Year must be after ${MIN_YEAR}.`;
-    if (yr > CURRENT_YEAR + 1)     return `Year cannot exceed ${CURRENT_YEAR + 1}.`;
+    if (!v || isNaN(yr)) return 'Year of passing is required.';
+    if (yr < MIN_YEAR) return `Year must be after ${MIN_YEAR}.`;
+    if (yr > CURRENT_YEAR + 1) return `Year cannot exceed ${CURRENT_YEAR + 1}.`;
     return '';
   },
   percentage: (v) => {
     const n = parseFloat(v);
-    if (v === '' || isNaN(n))      return 'Percentage / CGPA is required.';
-    if (n < 0 || n > 100)          return 'Enter a value between 0 and 100.';
+    if (v === '' || isNaN(n)) return 'Percentage / CGPA is required.';
+    if (n < 0 || n > 100) return 'Enter a value between 0 and 100.';
     return '';
   },
   mode: (v) => STUDY_MODES.includes(v) ? '' : 'Please select a mode of study.',
@@ -45,10 +45,10 @@ const validators = {
 
 const validate = (field, value, qualification) => {
   const trimmedValue = (value || '').toString().trim();
-  
+
   // If the current field is being cleared, check if the rest of the row is also empty
   if (trimmedValue === '') {
-    const hasOtherContent = Object.entries(qualification).some(([k, v]) => 
+    const hasOtherContent = Object.entries(qualification).some(([k, v]) =>
       k !== 'level' && k !== 'id' && k !== field && v && v.toString().trim() !== ''
     );
     // If no other field is filled, this row doesn't "need" validation yet
@@ -61,19 +61,19 @@ const validate = (field, value, qualification) => {
 // ─── Animation variants (outside component → created once) ───────────────────
 
 const containerVariants = {
-  hidden:  { opacity: 0 },
+  hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
 const cardVariants = {
-  hidden:  { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 };
 
 const errorVariants = {
-  hidden:  { opacity: 0, y: -4 },
+  hidden: { opacity: 0, y: -4 },
   visible: { opacity: 1, y: 0 },
-  exit:    { opacity: 0 },
+  exit: { opacity: 0 },
 };
 
 // ─── InputField ───────────────────────────────────────────────────────────────
@@ -98,11 +98,10 @@ const InputField = ({
     <div className="relative group">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <Icon
-          className={`h-4 w-4 transition-colors duration-150 ${
-            error
+          className={`h-4 w-4 transition-colors duration-150 ${error
               ? 'text-red-400'
               : 'text-gray-400 group-focus-within:text-blue-500'
-          }`}
+            }`}
         />
       </div>
       <input
@@ -286,19 +285,19 @@ const CustomSelect = ({ label, value, onChange, onBlur, options, error, icon: Ic
 const Academics = () => {
   const dispatch = useDispatch();
   const academics = useSelector((state) => state.candidateForm.academics);
-  const errors    = useSelector((state) => state.candidateForm.errors);
+  const errors = useSelector((state) => state.candidateForm.errors);
 
   // Validate on change — clear error immediately when value becomes valid
   const handleChange = useCallback(
     (index, field, value) => {
       dispatch(updateAcademic({ index, field, value }));
-      
+
       // Get the current state of this qualification row
       const currentQual = academics.qualifications[index];
       const updatedQual = { ...currentQual, [field]: value };
-      
+
       const error = validate(field, value, updatedQual);
-      
+
       if (error) {
         dispatch(setError({ field: `academics.${index}.${field}`, error }));
       } else {
@@ -306,7 +305,7 @@ const Academics = () => {
       }
 
       // Special case: if the whole row is now empty, clear ALL errors for this row
-      const isRowEmpty = Object.entries(updatedQual).every(([k, v]) => 
+      const isRowEmpty = Object.entries(updatedQual).every(([k, v]) =>
         k === 'level' || k === 'id' || !v || v.toString().trim() === ''
       );
       if (isRowEmpty) {
