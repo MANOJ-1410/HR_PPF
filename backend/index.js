@@ -172,23 +172,37 @@ const allowedOrigin = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "https://hr-ppf-s3wt.vercel.app",
-    "https://manjushree-hr.vercel.app"
+    "https://manjushree-hr.vercel.app",
+    "https://hr-ppf.vercel.app"
 ];
-
 
 app.use(
     cors({
         origin: function (origin, callback) {
-            console.log("Origin requested:", origin);
-            if (allowedOrigin.includes(origin) || !origin) {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+            
+            if (allowedOrigin.includes(origin) || origin.endsWith('.vercel.app')) {
                 callback(null, true);
             } else {
+                console.log("CORS blocked for origin:", origin);
                 callback(new Error("Not allowed by CORS"));
             }
         },
-        credentials: true
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+        optionsSuccessStatus: 200
     })
 );
+
+// Manual handle for Private Network Access (Edge/Chrome) and pre-flight
+app.use((req, res, next) => {
+    if (req.headers['access-control-request-private-network']) {
+        res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    }
+    next();
+});
 
 // Middlewares
 app.use(express.json({ limit: "500mb" }));

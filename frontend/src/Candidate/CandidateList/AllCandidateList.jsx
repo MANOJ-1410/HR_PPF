@@ -25,6 +25,7 @@ import { useDispatch } from "react-redux";
 import { backendUrl } from "../../backendUrl";
 import logo from '../../assets/MV Logo.png';
 import Loader from "../../components/Loader";
+import { CandidateCardSkeleton } from "../../components/Skeleton";
 
 // --- Animations ---
 const containerVariants = {
@@ -155,12 +156,9 @@ const AllCandidateList = () => {
     }
   };
 
-  // --- Loading State ---
-  if (isLoading) return <Loader text="Synchronizing database..." />;
-
+  // --- Render ---
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20 pt-20">
-      {/* Redundant local Navbar removed to use the global one from App.jsx */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         {/* --- Toolbar --- */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
@@ -168,7 +166,7 @@ const AllCandidateList = () => {
             <h1 className="text-3xl font-bold text-mv-navy tracking-tight mb-2">Candidate Database</h1>
             <p className="text-slate-500 font-medium flex items-center">
               <FileText size={16} className="mr-2" />
-              {filteredCandidates.length} Active Records
+              {isLoading ? 'Synchronizing database...' : `${filteredCandidates.length} Active Records`}
             </p>
           </div>
 
@@ -227,44 +225,53 @@ const AllCandidateList = () => {
         </AnimatePresence>
 
         {/* --- Main Content --- */}
-        <AnimatePresence mode="wait">
-          {filteredCandidates.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm"
-            >
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300">
-                <Search size={32} />
-              </div>
-              <h3 className="text-lg font-bold text-mv-navy">No results found</h3>
-              <p className="text-slate-400 text-sm mt-1">Try refining your search terms.</p>
-            </motion.div>
-          ) : (
-            <motion.div 
-              key={viewMode}
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className={
-                viewMode === "grid" 
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" 
-                  : "flex flex-col gap-4"
-              }
-            >
-              {filteredCandidates.map((candidate) => (
-                <CandidateCard 
-                  key={candidate.contactDetail?._id || candidate._id}
-                  data={candidate}
-                  viewMode={viewMode}
-                  onView={() => handleView(candidate.contactDetail?._id || candidate._id)}
-                  onEdit={() => handleEdit(candidate)}
-                  onDelete={() => handleDeleteClick(candidate.contactDetail?._id || candidate._id, candidate?.personalDetail?.name)}
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {isLoading ? (
+          <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" : "flex flex-col gap-4"}>
+            {[...Array(8)].map((_, i) => (
+              <CandidateCardSkeleton key={i} viewMode={viewMode} />
+            ))}
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {filteredCandidates.length === 0 ? (
+              <motion.div 
+                key="empty"
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm"
+              >
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300">
+                  <Search size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-mv-navy">No results found</h3>
+                <p className="text-slate-400 text-sm mt-1">Try refining your search terms.</p>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key={viewMode}
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className={
+                  viewMode === "grid" 
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" 
+                    : "flex flex-col gap-4"
+                }
+              >
+                {filteredCandidates.map((candidate) => (
+                  <CandidateCard 
+                    key={candidate.contactDetail?._id || candidate._id}
+                    data={candidate}
+                    viewMode={viewMode}
+                    onView={() => handleView(candidate.contactDetail?._id || candidate._id)}
+                    onEdit={() => handleEdit(candidate)}
+                    onDelete={() => handleDeleteClick(candidate.contactDetail?._id || candidate._id, candidate?.personalDetail?.name)}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* --- Delete Confirmation Modal --- */}

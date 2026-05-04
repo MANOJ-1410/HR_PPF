@@ -71,11 +71,12 @@ router.post('/login', async (req, res) => {
     );
 
     // Set Cookie
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      sameSite: "strict",
+      sameSite: isProduction ? "none" : "lax",
     });
 
     // Send response

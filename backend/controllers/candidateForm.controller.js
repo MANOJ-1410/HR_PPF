@@ -157,13 +157,22 @@ exports.createNewCandidate = async (req, res) => {
 }
 
 exports.getAllNewCandidate = async (req, res) => {
-
     try {
-        const candidates = await newCandidateFormModels.find({}).lean();
+        // Optimization: Only fetch fields required for the list view to reduce payload size
+        const candidates = await newCandidateFormModels.find({}, {
+            'personalDetail.name': 1,
+            'personalDetail.photo': 1,
+            'personalDetail.email': 1,
+            'personalDetail.phoneNo': 1,
+            'personalDetail.positionApplied': 1,
+            'personalDetail.canJoinIn30Days': 1,
+            'careerProgression.experiences.totalService': 1,
+            'createdAt': 1
+        }).sort({ createdAt: -1 }).lean();
 
         return res.status(200).json(candidates);
     } catch (error) {
-        console.log("Error during candidate save:", error);
+        console.log("Error during candidate fetch:", error);
         res.status(400).json({ message: error.message });
     }
 }

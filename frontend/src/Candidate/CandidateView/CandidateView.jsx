@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Download, Printer, ArrowLeft } from "lucide-react";
-import html2pdf from "html2pdf.js";
+import { Printer, ArrowLeft } from "lucide-react";
 import logo from "../../assets/MV Logo.png";
 import { getCandidateDetailsByID } from "../../apiHandler/candidate";
 import { backendUrl } from "../../backendUrl";
@@ -17,7 +16,22 @@ const CandidateView = () => {
   const [candidateDetail, setCandidateDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [scale, setScale] = useState(1);
+
+  // Handle Dynamic Scaling for Mobile (Shrinking)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 850) { // Slightly more than 210mm (794px)
+        const factor = (window.innerWidth - 20) / 820; 
+        setScale(factor);
+      } else {
+        setScale(1);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Fetch candidate data
   useEffect(() => {
@@ -36,37 +50,6 @@ const CandidateView = () => {
     if (candidateId) fetchCandidate();
   }, [candidateId]);
 
-  // Handle PDF Download
-  const handleDownloadPdf = async () => {
-    if (isGeneratingPdf) return;
-    setIsGeneratingPdf(true);
-
-    const element = document.getElementById("pdf-content");
-    const options = {
-      margin: [2, 0, 5, 0], // Reduced top margin to make content come 'little up'
-      filename: `${candidateDetail?.personalDetail?.name || "Candidate"}_Profile.pdf`,
-      image: { type: "jpeg", quality: 1.0 },
-      html2canvas: { 
-        scale: 3, // Increased scale for pixel-perfection
-        useCORS: true, 
-        letterRendering: true,
-        allowTaint: true,
-        logging: false,
-      },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
-      pagebreak: { mode: ["avoid-all", "css"] }
-    };
-
-    try {
-      // Give the browser a moment to ensure all styles/images are fully painted
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await html2pdf().set(options).from(element).save();
-    } catch (err) {
-      console.error("PDF Export Error:", err);
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
 
   // Handle Print
   const handlePrint = () => {
@@ -111,8 +94,8 @@ const CandidateView = () => {
       <div className="sticky top-[72px] z-40 w-full mb-8 print:hidden transition-all duration-300">
         <div className="max-w-[210mm] mx-auto px-4 md:px-0">
           <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl shadow-lg p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <button 
-              onClick={() => navigate(-1)} 
+            <button
+              onClick={() => navigate(-1)}
               className="flex items-center gap-2 text-slate-500 hover:text-mv-navy font-bold text-sm transition-all group"
             >
               <div className="p-2 rounded-lg bg-slate-50 group-hover:bg-slate-100 transition-colors">
@@ -120,19 +103,14 @@ const CandidateView = () => {
               </div>
               Back to Database
             </button>
-            
+
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <button 
-                onClick={handleDownloadPdf} 
-                disabled={isGeneratingPdf}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3 bg-mv-navy text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md shadow-slate-200 disabled:opacity-70 active:scale-95"
+              <button
+                onClick={handlePrint}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-3 bg-mv-navy text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md shadow-slate-200 active:scale-95"
               >
-                {isGeneratingPdf ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Download size={18} />
-                )}
-                {isGeneratingPdf ? "Generating..." : "Download PDF"}
+                <Printer size={18} />
+                Print Profile
               </button>
             </div>
           </div>
@@ -140,13 +118,25 @@ const CandidateView = () => {
       </div>
 
       {/* Main Content (Natural Flow) */}
-      <div id="pdf-content" className="w-[210mm] mx-auto bg-white shadow-2xl print:shadow-none print:w-full">
-        <div className="print-wrapper">
-          <style dangerouslySetInnerHTML={{ __html: `
+      <div className="w-full pb-12 print:pb-0 overflow-hidden">
+        <div 
+          id="pdf-content" 
+          className="max-w-[210mm] mx-auto bg-white shadow-2xl print:shadow-none print:w-full overflow-hidden my-4"
+          style={{ 
+            zoom: scale < 1 ? scale : 'normal',
+            MozTransform: scale < 1 ? `scale(${scale})` : 'none',
+            MozTransformOrigin: 'top center'
+          }}
+        >
+          <div className="print-wrapper">
+          <style dangerouslySetInnerHTML={{
+            __html: `
             .excel-table { 
               width: 100%; 
               border-collapse: collapse; 
-              font-family: 'Arial', sans-serif; 
+              font-family: 'Arial', 'Helvetica', sans-serif; 
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
               table-layout: fixed; 
               margin-bottom: 2px; 
               page-break-inside: avoid; 
@@ -155,13 +145,12 @@ const CandidateView = () => {
             }
             .excel-table td, .excel-table th { 
               border: 1px solid #000; 
-              padding: 5px 8px; 
+              padding: 4px 8px 6px 8px; /* 6px bottom padding as requested */
               font-size: 7.5pt; 
               vertical-align: middle; 
-              min-height: 24px; 
               word-wrap: break-word; 
               position: relative; 
-              line-height: 1.2;
+              line-height: 1.1;
               box-sizing: border-box;
             }
             .excel-table th {
@@ -183,12 +172,12 @@ const CandidateView = () => {
             .font-bold { font-weight: bold; }
             .header-box { border: 1px solid #000; padding: 3px 6px; text-align: center; }
             .print-wrapper { 
-              width: 210mm; 
+              width: 190mm; 
               margin: 0 auto;
-              padding: 8mm 10mm 10mm 10mm; 
+              padding: 0; 
               box-sizing: border-box; 
               background: white;
-              min-height: 297mm;
+              min-height: 277mm;
             }
             .photo-container {
               width: 100%;
@@ -205,10 +194,45 @@ const CandidateView = () => {
               object-fit: contain;
             }
             @media print {
-              .print-wrapper { width: 190mm; padding: 0; margin: 0; }
-              body { background: white; }
-              .print-hidden { display: none !important; }
-              @page { margin: 10mm; }
+              @page { 
+                size: A4; 
+                margin: 10mm; 
+              }
+              body { 
+                background: white !important; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+              }
+              nav, .print-hidden, .print\:hidden { 
+                display: none !important; 
+              }
+              .print-wrapper { 
+                width: 100% !important; 
+                padding: 0 !important; 
+                margin: 0 !important;
+                min-height: auto;
+                box-shadow: none !important;
+              }
+              #pdf-content { 
+                width: 100% !important; 
+                margin: 0 !important;
+                box-shadow: none !important;
+              }
+            }
+            
+            /* Custom Horizontal Scrollbar for Mobile */
+            .custom-scrollbar-horizontal::-webkit-scrollbar {
+              height: 6px;
+            }
+            .custom-scrollbar-horizontal::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+              background: #cbd5e1;
+              border-radius: 10px;
+            }
+            .custom-scrollbar-horizontal::-webkit-scrollbar-thumb:hover {
+              background: #94a3b8;
             }
           `}} />
 
@@ -240,7 +264,7 @@ const CandidateView = () => {
               <tr>
                 <td className="bg-navy" style={{ width: '12%' }}>Note</td>
                 <td style={{ fontSize: '7.5pt', padding: '4px 10px' }}>
-                  1. All the information asked should be typed without fail. Don't leave any cell blank.<br/>
+                  1. All the information asked should be typed without fail. Don't leave any cell blank.<br />
                   2. After filling all cells, send to us in printable format
                 </td>
               </tr>
@@ -273,14 +297,14 @@ const CandidateView = () => {
                 <td colSpan="2" rowSpan="4" className="text-center" style={{ border: '1px solid #000', padding: '1px' }}>
                   <div className="photo-container" style={{ height: '115px' }}>
                     {personal.photo ? (
-                      <img 
-                        src={personal.photo.startsWith('http') ? personal.photo : `${backendUrl}${personal.photo}`} 
-                        alt="Candidate" 
+                      <img
+                        src={personal.photo.startsWith('http') ? personal.photo : `${backendUrl}${personal.photo}`}
+                        alt="Candidate"
                         crossOrigin="anonymous"
                       />
                     ) : (
                       <div style={{ fontSize: '7pt', color: '#888', padding: '5px' }}>
-                        Insert Recent Photograph<br/>(Use JPEG)
+                        Insert Recent Photograph<br />(Use JPEG)
                       </div>
                     )}
                   </div>
@@ -306,7 +330,7 @@ const CandidateView = () => {
           </table>
 
           {/* Languages & Employment Terms - Refactored for 9 Columns */}
-          <table className="excel-table mt-4" style={{ tableLayout: 'fixed' }}>
+          <table className="excel-table mt-1" style={{ tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: '10%' }} />
               <col style={{ width: '15%' }} />
@@ -384,7 +408,7 @@ const CandidateView = () => {
           </table>
 
           {/* Academics Section */}
-          <table className="excel-table mt-4">
+          <table className="excel-table mt-1">
             <thead>
               <tr><th colSpan="7" className="bg-navy">ACADEMICS / EDUCATIONAL QUALIFICATION</th></tr>
               <tr>
@@ -415,9 +439,9 @@ const CandidateView = () => {
             </tbody>
           </table>
 
-          
+
           {/* Career Progression Header */}
-          <table className="excel-table mt-4">
+          <table className="excel-table mt-1">
             <thead>
               <tr><th colSpan="11" className="bg-navy">CAREER PROGRESSION ( BEGIN WITH CURRENT/ LAST SERVED COMPANY)</th></tr>
               <tr style={{ fontSize: '7.5pt' }}>
@@ -458,9 +482,9 @@ const CandidateView = () => {
               })()}
             </tbody>
           </table>
-          
+
           {/* Family Details */}
-          <table className="excel-table mt-4">
+          <table className="excel-table mt-1">
             <thead>
               <tr><th colSpan="5" className="bg-navy">FAMILY DETAILS</th></tr>
               <tr>
@@ -524,7 +548,7 @@ const CandidateView = () => {
           </table>
 
           {/* References */}
-          <table className="excel-table mt-6">
+          <table className="excel-table mt-1">
             <thead>
               <tr><th colSpan="4" className="bg-navy">REFERENCES</th></tr>
               <tr>
@@ -555,7 +579,7 @@ const CandidateView = () => {
           </table>
 
           {/* Verification Questions */}
-          <table className="excel-table mt-4">
+          <table className="excel-table mt-1">
             <tbody>
               <tr>
                 <td colSpan="3" className="bg-blue-header" style={{ borderBottom: 'none' }}>Please confirm whether we can verify your employment details from your current employer?</td>
@@ -569,7 +593,7 @@ const CandidateView = () => {
           </table>
 
           {/* Declaration */}
-          <table className="excel-table mt-4">
+          <table className="excel-table mt-1">
             <tbody>
               <tr>
                 <td style={{ fontSize: '8.5pt', padding: '15px', lineHeight: '1.4' }}>
@@ -580,17 +604,17 @@ const CandidateView = () => {
           </table>
 
           {/* Signature */}
-          <table className="excel-table mt-4">
+          <table className="excel-table mt-1">
             <tbody>
               <tr>
-                <td className="bg-blue-header text-center" style={{ width: '50%' }}>Signature<br/><span style={{ fontSize: '7pt', fontWeight: 'normal' }}>Insert JPEG image in the space provided</span></td>
+                <td className="bg-blue-header text-center" style={{ width: '50%' }}>Signature<br /><span style={{ fontSize: '7pt', fontWeight: 'normal' }}>Insert JPEG image in the space provided</span></td>
                 <td className="text-center">
                   <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {declaration.signature ? (
-                      <img 
-                        src={declaration.signature.startsWith('http') ? declaration.signature : `${backendUrl}${declaration.signature}`} 
-                        alt="Signature" 
-                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
+                      <img
+                        src={declaration.signature.startsWith('http') ? declaration.signature : `${backendUrl}${declaration.signature}`}
+                        alt="Signature"
+                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
                         crossOrigin="anonymous"
                       />
                     ) : (
@@ -602,6 +626,7 @@ const CandidateView = () => {
             </tbody>
           </table>
 
+          </div>
         </div>
       </div>
     </div>

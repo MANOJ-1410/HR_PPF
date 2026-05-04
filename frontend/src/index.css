@@ -25,3 +25,16 @@ body {
 .transition-all-custom {
   @apply transition-all duration-300 ease-in-out;
 }
+
+/* Print Optimizations */
+@media print {
+  nav, header, footer, .print-hidden, .print\:hidden {
+    display: none !important;
+  }
+  
+  body {
+    background-color: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
