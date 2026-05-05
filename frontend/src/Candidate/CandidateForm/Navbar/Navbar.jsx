@@ -19,37 +19,15 @@ import logo from "../../../assets/MV Logo.png";
 
 import { LogoutAdmin } from "../../../apiHandler/authenticate";
 
-const Navbar = ({ onLogout }) => {
+const Navbar = ({ onLogout, isLoggedIn, userRole, userEmail }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState('');
-  const [userEmail, setUserEmail] = useState('');
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const isSuperAdmin = userRole === 'superadmin';
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
   const menuRef = useRef(null);
-
-  // --- Authentication Check ---
-  useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    const role = localStorage.getItem('userRole');
-
-    if (userStr && role) {
-      const user = JSON.parse(userStr);
-      setIsLoggedIn(true);
-      setUserRole(role);
-      setUserEmail(user.email);
-      setIsSuperAdmin(role === 'superadmin');
-    } else {
-      setIsLoggedIn(false);
-      setUserRole('');
-      setUserEmail('');
-      setIsSuperAdmin(false);
-    }
-  }, [location.pathname]);
 
   // --- Scroll Effect ---
   useEffect(() => {
@@ -87,13 +65,9 @@ const Navbar = ({ onLogout }) => {
     }
 
     localStorage.clear();
-    setIsLoggedIn(false);
-    setUserRole('');
-    setUserEmail('');
-    setIsSuperAdmin(false);
     setIsMenuOpen(false);
     
-    // Notify App component to lock routes immediately
+    // Notify App component to lock routes and clear global state immediately
     if (onLogout) onLogout();
     
     toast.success("Logged out successfully", { 
@@ -104,8 +78,7 @@ const Navbar = ({ onLogout }) => {
     });
   
     setTimeout(() => {
-      navigate("/superadmin");
-      window.location.reload(); 
+      navigate("/"); // Redirect to Home page as requested
     }, 1000);
   }, [navigate, onLogout]);
 

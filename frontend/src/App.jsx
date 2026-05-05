@@ -25,19 +25,8 @@ const App = () => {
   const hideNavbar = location.pathname === '/superadmin'; 
 
   useEffect(() => {
+  useEffect(() => {
     const checkAuth = async () => {
-      // Step 1: Optimistic Auth - Check localStorage first
-      const storedUser = localStorage.getItem('user');
-      const storedRole = localStorage.getItem('userRole');
-      
-      if (storedUser && storedRole) {
-        setIsLoggedIn(true);
-        setUserRole(storedRole);
-        // We can optionally set loading(false) here if we want to show the app immediately,
-        // but it's safer to wait for the actual token verification to prevent flash of content.
-        // However, setting it to false here makes the app feel "instant".
-      }
-
       try {
         const data = await GetMe();
         if (data && !data.hasError) {
@@ -87,7 +76,14 @@ const App = () => {
 
   return (
     <Suspense fallback={<Loader />}>
-      {!hideNavbar && <Navbar onLogout={handleLogoutState} />}
+      {!hideNavbar && (
+        <Navbar 
+          onLogout={handleLogoutState} 
+          isLoggedIn={isLoggedIn} 
+          userRole={userRole}
+          userEmail={JSON.parse(localStorage.getItem('user') || '{}').email}
+        />
+      )}
 
       <Routes>
         <Route path='/' element={<HomePage/>} />
