@@ -130,7 +130,6 @@ const candidateRoute = require("./routes/candidateForm.route");
 require("dotenv").config();
 
 const app = express();
-app.use(cookieParser());
 const addAdminRoute = require("./routes/addAdminRoute");
 const authRoutes = require('./routes/auth');
 
@@ -176,7 +175,7 @@ const allowedOrigin = [
     "https://hr-ppf.vercel.app"
 ];
 
-// Manual CORS and Pre-flight Handler
+// --- CRITICAL: CORS AND PRE-FLIGHT HANDLER MUST BE FIRST ---
 app.use((req, res, next) => {
     const origin = req.headers.origin;
     const isVercel = origin && /https?:\/\/.*\.vercel\.app$/.test(origin);
@@ -186,6 +185,7 @@ app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
         res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Origin');
+        res.setHeader('Vary', 'Origin');
     }
 
     // Handle Private Network Access (Chrome/Edge optimization)
@@ -195,11 +195,13 @@ app.use((req, res, next) => {
 
     // Immediate response for OPTIONS pre-flight
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        return res.status(204).end();
     }
     
     next();
 });
+
+app.use(cookieParser());
 
 // Middlewares
 app.use(express.json({ limit: "500mb" }));
