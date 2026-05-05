@@ -176,38 +176,28 @@ const allowedOrigin = [
     "https://hr-ppf.vercel.app"
 ];
 
-app.use(
-    cors({
-        origin: function (origin, callback) {
-            if (!origin) return callback(null, true);
-            
-            const isVercel = /https?:\/\/.*\.vercel\.app$/.test(origin);
-            if (allowedOrigin.includes(origin) || isVercel) {
-                callback(null, true);
-            } else {
-                console.log("CORS blocked for origin:", origin);
-                callback(new Error("Not allowed by CORS"));
-            }
-        },
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: [
-            'Content-Type', 
-            'Authorization', 
-            'X-Requested-With', 
-            'Accept', 
-            'Origin',
-            'X-Api-Version'
-        ],
-        optionsSuccessStatus: 200
-    })
-);
-
-// Manual handle for Private Network Access (Edge/Chrome) and pre-flight
+// Manual CORS and Pre-flight Handler
 app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const isVercel = origin && /https?:\/\/.*\.vercel\.app$/.test(origin);
+    
+    if (allowedOrigin.includes(origin) || isVercel) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+        res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Origin');
+    }
+
+    // Handle Private Network Access (Chrome/Edge optimization)
     if (req.headers['access-control-request-private-network']) {
         res.setHeader('Access-Control-Allow-Private-Network', 'true');
     }
+
+    // Immediate response for OPTIONS pre-flight
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    
     next();
 });
 
