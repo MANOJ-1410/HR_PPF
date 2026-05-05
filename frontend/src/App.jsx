@@ -66,6 +66,13 @@ const App = () => {
     setUserRole(role);
   };
 
+  const handleLogoutState = () => {
+    setIsLoggedIn(false);
+    setUserRole('');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+  };
+
   // Protected Route Component
   const PrivateRoute = ({ children }) => {
     if (loading) return <Loader />;
@@ -80,7 +87,7 @@ const App = () => {
 
   return (
     <Suspense fallback={<Loader />}>
-      {!hideNavbar && <Navbar />}
+      {!hideNavbar && <Navbar onLogout={handleLogoutState} />}
 
       <Routes>
         <Route path='/' element={<HomePage/>} />

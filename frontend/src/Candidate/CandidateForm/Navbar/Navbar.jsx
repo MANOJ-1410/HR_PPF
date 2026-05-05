@@ -19,7 +19,7 @@ import logo from "../../../assets/MV Logo.png";
 
 import { LogoutAdmin } from "../../../apiHandler/authenticate";
 
-const Navbar = () => {
+const Navbar = ({ onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -93,18 +93,21 @@ const Navbar = () => {
     setIsSuperAdmin(false);
     setIsMenuOpen(false);
     
+    // Notify App component to lock routes immediately
+    if (onLogout) onLogout();
+    
     toast.success("Logged out successfully", { 
       position: "top-center",
-      autoClose: 2000,
+      autoClose: 1500,
       theme: "light",
       hideProgressBar: true
     });
   
     setTimeout(() => {
       navigate("/superadmin");
-      window.location.reload(); // Ensure all states are reset
+      window.location.reload(); 
     }, 1000);
-  }, [navigate]);
+  }, [navigate, onLogout]);
 
   const getInitials = (email) => {
     if (!email) return "U";
